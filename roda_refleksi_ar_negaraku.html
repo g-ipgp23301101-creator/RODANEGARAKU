@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎡 RODA REFLEKSI AR NEGARAKU 🇲🇾</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- MediaPipe Hands & Camera Utils CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --neon-cyan: #00f0ff;
+      --neon-blue: #0d82ff;
+      --neon-purple: #9d00ff;
+      --neon-pink: #ff007f;
+      --neon-yellow: #ffe600;
+      --neon-gold: #ffb703;
+      --neon-green: #00ff88;
+      --neon-red: #ff334b;
+      --bg-dark: #0a0b1d;
+      --panel-bg: rgba(16, 20, 50, 0.92);
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Fredoka', cursive, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Latar Belakang Pentas TV Futuristik */
+    .tv-stage-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 30%, #20134f 0%, #0c0827 55%, #050314 100%);
+      z-index: 0;
+    }
+    .grid-floor {
+      position: absolute;
+      bottom: -15%;
+      left: -20%;
+      width: 140%;
+      height: 60%;
+      background: 
+        linear-gradient(rgba(0, 240, 255, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 0, 255, 0.12) 1px, transparent 1px);
+      background-size: 50px 50px;
+      transform: perspective(500px) rotateX(65deg);
+      box-shadow: 0 0 120px rgba(0, 240, 255, 0.25) inset;
+    }
+    .spotlight {
+      position: absolute;
+      top: -120px;
+      width: 380px;
+      height: 1000px;
+      opacity: 0.25;
+      filter: blur(50px);
+      pointer-events: none;
+      transform-origin: top center;
+      animation: sweepLights 8s ease-in-out infinite alternate;
+    }
+    .spotlight-left {
+      left: 8%;
+      background: linear-gradient(180deg, #ff007f 0%, transparent 80%);
+      transform: rotate(25deg);
+    }
+    .spotlight-right {
+      right: 8%;
+      background: linear-gradient(180deg, #00f0ff 0%, transparent 80%);
+      transform: rotate(-25deg);
+      animation-delay: -4s;
+    }
+    @keyframes sweepLights {
+      0% { transform: rotate(-25deg); }
+      100% { transform: rotate(25deg); }
+    }
+
+    /* Container Aplikasi */
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 20px;
+      overflow: hidden;
+    }
+
+    /* Bar Header Atas */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(14, 18, 48, 0.88);
+      border: 3px solid rgba(0, 240, 255, 0.65);
+      border-radius: 20px;
+      padding: 10px 20px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.35), 0 6px 0 rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+    }
+
+    .brand-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .live-badge {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(255, 0, 127, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pulsing-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 10px #00ff88;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.7); opacity: 0.4; }
+    }
+
+    .title-texts h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.8), 2px 2px 0 #06091f;
+      line-height: 1.1;
+    }
+    .title-texts p {
+      font-size: 0.85rem;
+      color: var(--neon-yellow);
+      font-weight: 600;
+    }
+
+    /* Jalur Gemilang Rasmi Vektor */
+    .flag-box {
+      width: 54px;
+      height: 32px;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(255, 230, 0, 0.45);
+      flex-shrink: 0;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-audio {
+      background: #191f4a;
+      border: 2px solid var(--neon-cyan);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 8px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 40px;
+      box-shadow: 0 4px 0 #090c24;
+      transition: all 0.1s ease;
+    }
+    .btn-audio:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #090c24;
+    }
+    .btn-audio.muted {
+      border-color: #ff4757;
+      color: #ff9d9d;
+      background: #2b111e;
+    }
+
+    /* Ruang Pentas Tengah */
+    .stage-arena {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Panel Kiri: Panduan & Status AR */
+    .ar-guide-panel {
+      width: 320px;
+      background: var(--panel-bg);
+      border: 3px solid var(--neon-purple);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 0 25px rgba(157, 0, 255, 0.3), 0 6px 0 rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .ar-guide-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px dashed rgba(0, 240, 255, 0.3);
+      padding-bottom: 6px;
+    }
+    .gesture-card {
+      background: rgba(8, 12, 34, 0.7);
+      border: 2px solid rgba(255, 230, 0, 0.4);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .gesture-icon-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      background: #1e1245;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      flex-shrink: 0;
+    }
+    .gesture-text h4 {
+      font-size: 0.95rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .gesture-text p {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+    }
+
+    /* Avatar Roblox Comel (Kiri Bawah) */
+    .roblox-host-card {
+      background: rgba(14, 20, 54, 0.6);
+      border: 2px solid rgba(0, 255, 136, 0.4);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .roblox-host-card p {
+      font-size: 0.82rem;
+      color: #00ff88;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    /* Roda Tengah */
+    .wheel-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Penunjuk Roda Atas (12 O'Clock Needle) */
+    .wheel-pointer-wrap {
+      position: relative;
+      z-index: 10;
+      margin-bottom: -22px;
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.75));
+    }
+    .pointer-arrow {
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-top: 48px solid var(--neon-gold);
+      position: relative;
+    }
+    .pointer-arrow::after {
+      content: '';
+      position: absolute;
+      top: -46px;
+      left: -16px;
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 36px solid #ffffff;
+    }
+
+    /* Penunjuk baki soalan aktif */
+    .remaining-questions-pill {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      background: rgba(13, 27, 62, 0.9);
+      border: 2px solid var(--neon-cyan);
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--neon-yellow);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+    }
+
+    .wheel-outer-glow {
+      position: relative;
+      width: clamp(280px, 34vw, 420px);
+      height: clamp(280px, 34vw, 420px);
+      border-radius: 50%;
+      padding: 12px;
+      background: linear-gradient(135deg, #00f0ff, #9d00ff, #ff007f, #ffe600);
+      box-shadow: 0 0 45px rgba(0, 240, 255, 0.5), 0 0 90px rgba(157, 0, 255, 0.3), 0 10px 0 rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #wheelCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+      background: #111;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    /* Hab Pusat Roda 3D */
+    .wheel-center-cap {
+      position: absolute;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 10%, #ffd200 60%, #ff8800 100%);
+      border: 4px solid #ffffff;
+      box-shadow: 0 0 20px rgba(255, 230, 0, 0.8), 0 6px 0 rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      z-index: 5;
+    }
+
+    /* Status Bar Roda */
+    .wheel-status-banner {
+      margin-top: 14px;
+      background: rgba(14, 18, 48, 0.85);
+      border: 2px solid var(--neon-cyan);
+      border-radius: 30px;
+      padding: 8px 24px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Butang Manual Guru / Sentuh Fallback */
+    .teacher-controls-bar {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-manual {
+      background: #192055;
+      border: 2px solid rgba(255, 230, 0, 0.6);
+      color: #fff;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #090c24;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      touch-action: manipulation;
+    }
+    .btn-manual:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #090c24;
+    }
+
+    /* Panel Kanan: Kamera AR PiP */
+    .ar-camera-panel {
+      width: 290px;
+      background: var(--panel-bg);
+      border: 3px solid var(--neon-cyan);
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.3), 0 6px 0 rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .camera-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px dashed rgba(0, 240, 255, 0.3);
+      padding-bottom: 6px;
+    }
+    .cam-status-pill {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #0d2818;
+      color: #00ff88;
+      border: 1.5px solid #00ff88;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cam-status-pill.error {
+      background: #33111b;
+      color: #ff4d6d;
+      border-color: #ff4d6d;
+    }
+
+    .video-viewport {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: #000;
+    }
+    #webcamVideo {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirror camera */
+    }
+    #outputCanvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirror canvas landmarks */
+      pointer-events: none;
+    }
+    .cam-overlay-guide {
+      position: absolute;
+      inset: 0;
+      border: 2px dashed rgba(0, 240, 255, 0.35);
+      border-radius: 12px;
+      pointer-events: none;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 6px;
+    }
+    .detected-gesture-badge {
+      background: rgba(0, 0, 0, 0.75);
+      border: 1.5px solid var(--neon-yellow);
+      color: var(--neon-yellow);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
+
+    .cam-tips {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      line-height: 1.25;
+      background: rgba(9, 12, 36, 0.8);
+      border-radius: 10px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--neon-gold);
+    }
+
+    /* =======================================================
+       MODAL SOALAN BESAR ROBLOX GLOW (Hanya Selepas Berhenti)
+       ======================================================= */
+    .question-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 8, 26, 0.88);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    .question-modal-backdrop.show {
+      display: flex;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .question-card-roblox {
+      background: var(--panel-bg);
+      border: 5px solid var(--neon-yellow);
+      border-radius: 32px;
+      padding: 32px 36px;
+      max-width: 960px;
+      width: 100%;
+      box-shadow: 0 0 50px rgba(255, 230, 0, 0.45), 0 12px 0 #070921;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+      position: relative;
+      animation: cardPop 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    @keyframes cardPop {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-q-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 8px 24px;
+      border-radius: 40px;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
+    }
+    .modal-op-tag {
+      background: var(--neon-yellow);
+      color: #0b0c26;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-family: var(--font-display);
+    }
+
+    .modal-question-text {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+      font-weight: 900;
+      line-height: 1.35;
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.8), 2px 2px 0 #000;
+      margin: 8px 0;
+    }
+
+    .modal-instruction-box {
+      background: rgba(14, 25, 60, 0.85);
+      border: 2px solid var(--neon-cyan);
+      border-radius: 20px;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--neon-green);
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+    }
+
+    /* Butang Gergasi 'NEXT — SOALAN SETERUSNYA' */
+    .btn-next-roblox {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+      color: #ffffff;
+      background: linear-gradient(180deg, #00ff88 0%, #00994d 100%);
+      border: 4px solid #ffffff;
+      border-radius: 24px;
+      padding: 18px 46px;
+      cursor: pointer;
+      box-shadow: 0 10px 0 #005028, 0 0 35px rgba(0, 255, 136, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 70px;
+      transition: all 0.15s ease-out;
+      touch-action: manipulation;
+    }
+    .btn-next-roblox:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #005028, 0 0 15px rgba(0, 255, 136, 0.4);
+    }
+
+    /* Modal Kebenaran Kamera Awal */
+    .perm-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 8, 24, 0.94);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .perm-card {
+      background: var(--panel-bg);
+      border: 4px solid var(--neon-cyan);
+      border-radius: 28px;
+      padding: 30px;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.4), 0 10px 0 #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Responsif untuk Smart TV (Skrin Lebar) & iPad Landskap */
+    @media (max-width: 1080px) {
+      .ar-guide-panel { width: 260px; padding: 12px; }
+      .ar-camera-panel { width: 240px; padding: 10px; }
+      .video-viewport { height: 160px; }
+      .wheel-outer-glow { width: 300px; height: 300px; }
+    }
+    @media (max-width: 860px) {
+      .stage-arena { flex-direction: column; overflow-y: auto; }
+      .ar-guide-panel, .ar-camera-panel { width: 100%; max-width: 440px; }
+      .wheel-outer-glow { width: 260px; height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Latar Pentas TV Futuristik -->
+  <div class="tv-stage-bg">
+    <div class="spotlight spotlight-left"></div>
+    <div class="spotlight spotlight-right"></div>
+    <div class="grid-floor"></div>
+  </div>
+
+  <div class="app-shell">
+
+    <!-- Bar Atas -->
+    <header class="header-bar">
+      <div class="brand-title-wrap">
+        <div class="live-badge">
+          <span class="pulsing-dot"></span>
+          <span>AR ON-AIR</span>
+        </div>
+        <div class="title-texts">
+          <h1>RODA REFLEKSI AR NEGARAKU</h1>
+          <p>Aktiviti Penutup PdP Sejarah Tahun 5 • Kawalan Gerakan Tangan MediaPipe</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <!-- Jalur Gemilang Rasmi Vektor SVG -->
+        <div class="flag-box" title="Jalur Gemilang">
+          <svg viewBox="0 0 280 140" width="100%" height="100%">
+            <rect width="280" height="10" y="0" fill="#cc0000"/>
+            <rect width="280" height="10" y="10" fill="#ffffff"/>
+            <rect width="280" height="10" y="20" fill="#cc0000"/>
+            <rect width="280" height="10" y="30" fill="#ffffff"/>
+            <rect width="280" height="10" y="40" fill="#cc0000"/>
+            <rect width="280" height="10" y="50" fill="#ffffff"/>
+            <rect width="280" height="10" y="60" fill="#cc0000"/>
+            <rect width="280" height="10" y="70" fill="#ffffff"/>
+            <rect width="280" height="10" y="80" fill="#cc0000"/>
+            <rect width="280" height="10" y="90" fill="#ffffff"/>
+            <rect width="280" height="10" y="100" fill="#cc0000"/>
+            <rect width="280" height="10" y="110" fill="#ffffff"/>
+            <rect width="280" height="10" y="120" fill="#cc0000"/>
+            <rect width="280" height="10" y="130" fill="#ffffff"/>
+            <rect width="140" height="80" fill="#000066"/>
+            <circle cx="65" cy="40" r="28" fill="#ffcc00"/>
+            <circle cx="73" cy="40" r="24" fill="#000066"/>
+            <g transform="translate(98, 40)">
+              <path d="M 0 -22 L 4 -9 L 16 -16 L 9 -4 L 22 0 L 9 4 L 16 16 L 4 9 L 0 22
+                       L -4 9 L -16 16 L -9 4 L -22 0 L -9 -4 L -16 -16 L -4 -9 Z" fill="#ffcc00"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="top-controls">
+          <button id="btnMusic" class="btn-audio">
+            <span id="musicIcon">🎵</span>
+            <span id="musicText">MUZIK: ON</span>
+          </button>
+          <button id="btnSfx" class="btn-audio">
+            <span id="sfxIcon">🔊</span>
+            <span id="sfxText">BUNYI: ON</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Arena Tengah: Panduan AR + Roda Refleksi + Kamera AR PiP -->
+    <main class="stage-arena">
+
+      <!-- Panel Kiri: Panduan Gestur Tangan & Roblox Host -->
+      <aside class="ar-guide-panel">
+        <div class="ar-guide-title">
+          <span>🖐️</span> PANDUAN GESTUR AR
+        </div>
+
+        <div class="gesture-card">
+          <div class="gesture-icon-badge" style="border-color: var(--neon-cyan);">🤏</div>
+          <div class="gesture-text">
+            <h4>GESTUR 1: CUBIT</h4>
+            <p>Ibu jari + Telunjuk rapat untuk <strong>MEMUTARKAN</strong> roda secara berterusan.</p>
+          </div>
+        </div>
+
+        <div class="gesture-card">
+          <div class="gesture-icon-badge" style="border-color: var(--neon-yellow);">✋</div>
+          <div class="gesture-text">
+            <h4>GESTUR 2: BUKA TAPAK TANGAN</h4>
+            <p>Buka semua 5 jari tegak untuk <strong>MENGHENTIKAN</strong> roda serta-merta.</p>
+          </div>
+        </div>
+
+        <!-- Avatar Roblox Host Pentas -->
+        <div class="roblox-host-card">
+          <svg width="60" height="75" viewBox="0 0 100 130">
+            <ellipse cx="50" cy="125" rx="36" ry="6" fill="rgba(0,0,0,0.4)" />
+            <rect x="26" y="88" width="20" height="34" rx="4" fill="#0d1b3a" stroke="#00f0ff" stroke-width="2"/>
+            <rect x="54" y="88" width="20" height="34" rx="4" fill="#0d1b3a" stroke="#00f0ff" stroke-width="2"/>
+            <rect x="22" y="44" width="56" height="46" rx="6" fill="#1b2559" stroke="#9d00ff" stroke-width="2.5"/>
+            <polygon points="50,44 44,56 50,72 56,56" fill="#ff007f"/>
+            <rect x="4" y="46" width="16" height="38" rx="4" fill="#1b2559"/>
+            <circle cx="12" cy="88" r="7" fill="#ffd200"/>
+            <rect x="80" y="46" width="16" height="38" rx="4" fill="#1b2559"/>
+            <circle cx="88" cy="86" r="7" fill="#ffd200"/>
+            <rect x="85" y="70" width="6" height="18" fill="#444"/>
+            <circle cx="88" cy="68" r="6" fill="#00f0ff"/>
+            <rect x="30" y="10" width="40" height="34" rx="7" fill="#ffd200" stroke="#000" stroke-width="2"/>
+            <circle cx="41" cy="24" r="3.5" fill="#111"/>
+            <circle cx="59" cy="24" r="3.5" fill="#111"/>
+            <path d="M 42 32 Q 50 40 58 32" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M 28 14 Q 50 4 72 14" stroke="#4a2810" stroke-width="7" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <p>“Sedia murid-murid? Cubit untuk memutar, buka tangan untuk berhenti!”</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Pentas Roda Utama -->
+      <section class="wheel-stage">
+        
+        <!-- Jarum Penunjuk Atas (12 O'Clock Needle) -->
+        <div class="wheel-pointer-wrap">
+          <div class="pointer-arrow"></div>
+        </div>
+
+        <div class="wheel-outer-glow">
+          <canvas id="wheelCanvas" width="600" height="600"></canvas>
+          <div class="wheel-center-cap">🇲🇾</div>
+        </div>
+
+        <!-- Penunjuk Baki Soalan Dinamik -->
+        <div id="remainingQuestionsPill" class="remaining-questions-pill">
+          <span>🎯</span> BAKI SOALAN AKTIF: <span id="remainingCountText" style="color:#00ff88;">4 / 4</span>
+        </div>
+
+        <div id="wheelStatusBanner" class="wheel-status-banner">
+          <span id="statusEmoji">✨</span>
+          <span id="statusText">HALAKAN TANGAN KE ARAH KAMERA</span>
+        </div>
+
+        <!-- Butang Sandaran Manual Guru (Smart TV / Fallback Sentuh) -->
+        <div class="teacher-controls-bar">
+          <button id="btnManualSpin" class="btn-manual">
+            <span>🤏</span> PUSING RODA (MANUAL)
+          </button>
+          <button id="btnManualStop" class="btn-manual">
+            <span>✋</span> HENTI RODA (MANUAL)
+          </button>
+        </div>
+      </section>
+
+      <!-- Panel Kanan: Kamera AR PiP Masa Nyata -->
+      <aside class="ar-camera-panel">
+        <div class="camera-header">
+          <span style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; color: var(--neon-cyan);">
+            📹 PENGESANAN AR
+          </span>
+          <span id="camStatusPill" class="cam-status-pill">
+            <span class="pulsing-dot" style="background:#00ff88; width:7px; height:7px;"></span>
+            <span>MEMULAKAN...</span>
+          </span>
+        </div>
+
+        <div class="video-viewport">
+          <video id="webcamVideo" autoplay playsinline muted></video>
+          <canvas id="outputCanvas" width="320" height="240"></canvas>
+          <div class="cam-overlay-guide">
+            <span id="detectedGestureBadge" class="detected-gesture-badge">MENUNGGU TANGAN...</span>
+          </div>
+        </div>
+
+        <div class="cam-tips">
+          💡 <strong>Tip Guru:</strong> Pastikan pencahayaan bilik darjah terang dan tangan berada di dalam kotak kamera.
+        </div>
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- ==========================================================
+       MODAL SOALAN BESAR ROBLOX GLOW (Hanya Selepas Berhenti)
+       ========================================================== -->
+  <div id="questionModalBackdrop" class="question-modal-backdrop">
+    <div class="question-card-roblox">
+      
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center;">
+        <div class="modal-q-badge">
+          <span>🎯</span>
+          <span id="modalSectorTitle">SOALAN REFLEKSI 1</span>
+        </div>
+        <div id="modalOpTag" class="modal-op-tag">OP1 : JATI DIRI</div>
+      </div>
+
+      <h2 id="modalQuestionText" class="modal-question-text">
+        Bagaimanakah Lagu Negaraku dapat membentuk jati diri rakyat Malaysia?
+      </h2>
+
+      <div class="modal-instruction-box">
+        <span>🗣️</span> MURID, SILA HURAIKAN JAWAPAN ANDA
+      </div>
+
+      <!-- Butang Gergasi Wajib Guru Tekan Untuk Beralih ke Murid Seterusnya -->
+      <button id="btnNextStudent" class="btn-next-roblox">
+        <span>NEXT — SOALAN SETERUSNYA</span> ➔
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MODAL PENAMAT / KESEMUA 4 SOALAN SELESAI -->
+  <div id="allDoneModalBackdrop" class="question-modal-backdrop">
+    <div class="question-card-roblox" style="border-color: var(--neon-gold); box-shadow: 0 0 55px rgba(255, 183, 3, 0.6), 0 12px 0 #070921;">
+      <div style="font-size: 3.8rem; filter: drop-shadow(0 0 20px rgba(255,230,0,0.8));">
+        🏆 ✨ 🇲🇾
+      </div>
+      <h2 style="font-family: var(--font-display); font-size: clamp(1.8rem, 3.8vw, 2.6rem); font-weight: 900; color: var(--neon-yellow); text-transform: uppercase;">
+        TAHNIAH, SEMUA SOALAN TELAH DIJAWAB!
+      </h2>
+      <p style="font-size: 1.15rem; line-height: 1.5; color: #f1f5f9; max-width: 680px;">
+        Aktiviti refleksi PdP Sejarah Tahun 5 telah berjaya disempurnakan. Murid-murid telah menunjukkan penghayatan cemerlang terhadap peranan <strong>Lagu Negaraku</strong> dalam memupuk jati diri dan mengukuhkan perpaduan bangsa Malaysia!
+      </p>
+      <button id="btnResetAll" class="btn-next-roblox" style="background: linear-gradient(180deg, var(--neon-cyan) 0%, #0088cc 100%);">
+        <span>🔄</span> MAIN SEMULA / RESET RODA
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL PEMULA / IZIN KAMERA -->
+  <div id="permModalOverlay" class="perm-modal-overlay">
+    <div class="perm-card">
+      <div style="font-size: 3.5rem;">🎡 🇲🇾 ✋</div>
+      <h2 style="font-family: var(--font-display); font-size: 1.8rem; color: var(--neon-yellow);">
+        RODA REFLEKSI AR NEGARAKU
+      </h2>
+      <p style="font-size: 1rem; color: #e2e8f0; line-height: 1.4;">
+        Aplikasi ini memerlukan akses <strong>Kamera iPad / Komputer</strong> untuk mengesan gestur tangan murid (Cubit untuk Memutar & Tapak Tangan Terbuka untuk Berhenti).
+      </p>
+      <p style="font-size: 0.85rem; color: #94a3b8;">
+        Sila benarkan akses kamera pelayar apabila diminta. Tiada rakaman video disimpan.
+      </p>
+      <button id="btnGrantCamera" class="btn-next-roblox" style="padding: 14px 34px;">
+        <span>🚀</span> AKTIFKAN KAMERA & MULA
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. DATA 4 SOALAN REFLEKSI SEJARAH TAHUN 5 (IDENTITI & PERPADUAN)
+       ========================================================================== */
+    const REFLECTION_QUESTIONS = {
+      1: {
+        number: 1,
+        op: "OP1",
+        opLabel: "OP1 : JATI DIRI",
+        color: "#00f0ff", // Neon Cyan
+        question: "Bagaimanakah Lagu Negaraku dapat membentuk jati diri rakyat Malaysia?"
+      },
+      2: {
+        number: 2,
+        op: "OP1",
+        opLabel: "OP1 : KESETIAAN KEPADA NEGARA",
+        color: "#ff007f", // Neon Pink
+        question: "Mengapakah Lagu Negaraku dapat memupuk rasa cinta dan taat setia kepada negara?"
+      },
+      3: {
+        number: 3,
+        op: "OP2",
+        opLabel: "OP2 : SIMBOL PERPADUAN",
+        color: "#9d00ff", // Neon Purple
+        question: "Bagaimanakah Lagu Negaraku dapat menyatukan rakyat Malaysia yang berbeza kaum, agama dan budaya?"
+      },
+      4: {
+        number: 4,
+        op: "OP2",
+        opLabel: "OP2 : SIMBOL PERPADUAN",
+        color: "#ffb703", // Neon Gold
+        question: "Mengapakah Lagu Negaraku penting sebagai simbol perpaduan rakyat Malaysia?"
+      }
+    };
+
+    /* ==========================================================================
+       2. ENJIN AUDIO (Web Audio API Tulen Tanpa Fail Luar)
+       ========================================================================== */
+    class RetroSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.musicEnabled = true;
+        this.sfxEnabled = true;
+        this.bgmTimer = null;
+        this.step = 0;
+        this.spinOsc = null;
+        this.spinGain = null;
+
+        // Melodi Futuristik Arpeggio Pentatonik Ceria Berulang
+        this.melody = [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25, 880.0, 1046.5];
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioClass = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioClass();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      startBGM() {
+        if (!this.ctx) this.init();
+        if (this.bgmTimer) return;
+        this.step = 0;
+        this.loopBGM();
+      }
+
+      loopBGM() {
+        if (!this.musicEnabled) {
+          this.bgmTimer = setTimeout(() => this.loopBGM(), 260);
+          return;
+        }
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const note = this.melody[this.step % this.melody.length];
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(note, now);
+
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.25);
+
+          this.step++;
+        } catch (e) {}
+
+        this.bgmTimer = setTimeout(() => this.loopBGM(), 250);
+      }
+
+      playClick() {
+        if (!this.sfxEnabled) return;
+        this.init();
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } catch (e) {}
+      }
+
+      startSpinSound() {
+        if (!this.sfxEnabled) return;
+        this.init();
+        try {
+          if (this.spinOsc) return;
+          const now = this.ctx.currentTime;
+          this.spinOsc = this.ctx.createOscillator();
+          this.spinGain = this.ctx.createGain();
+
+          this.spinOsc.type = 'sawtooth';
+          this.spinOsc.frequency.setValueAtTime(140, now);
+
+          this.spinGain.gain.setValueAtTime(0.01, now);
+          this.spinGain.gain.linearRampToValueAtTime(0.06, now + 0.2);
+
+          this.spinOsc.connect(this.spinGain);
+          this.spinGain.connect(this.ctx.destination);
+          this.spinOsc.start();
+        } catch (e) {}
+      }
+
+      stopSpinSound() {
+        if (this.spinOsc) {
+          try {
+            const now = this.ctx.currentTime;
+            this.spinGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+            this.spinOsc.stop(now + 0.06);
+          } catch (e) {}
+          this.spinOsc = null;
+          this.spinGain = null;
+        }
+      }
+
+      playBrakeStop() {
+        if (!this.sfxEnabled) return;
+        this.init();
+        this.stopSpinSound();
+        try {
+          const now = this.ctx.currentTime;
+          // Impak Berhenti 'Thud' Digital
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(60, now + 0.22);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } catch (e) {}
+      }
+
+      playSparkle() {
+        if (!this.sfxEnabled) return;
+        this.init();
+        try {
+          const now = this.ctx.currentTime;
+          const notes = [1046.50, 1318.51, 1567.98, 2093.00];
+          notes.forEach((freq, idx) => {
+            const t = now + (idx * 0.07);
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.18, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.38);
+          });
+        } catch (e) {}
+      }
+    }
+
+    const sound = new RetroSoundEngine();
+
+    /* ==========================================================================
+       3. SISTEM PUTARAN & LUKISAN RODA CANVAS DINAMIK (AUTO-REMOVE SOALAN)
+       ========================================================================== */
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const ctx = wheelCanvas.getContext('2d');
+
+    const wheelState = {
+      angle: 0,              // Sudut semasa dalam radian
+      angularSpeed: 0,       // Kelajuan semasa
+      isSpinning: false,     // Sedang berputar
+      isLocked: false,       // Terkunci apabila soalan dipaparkan sehingga NEXT ditekan
+      pinchCooldown: false,  // Mencegah cubitan berulang memulakan roda berlipat kali
+      selectedSector: null
+    };
+
+    // Master definisi 4 sektor
+    const ALL_MASTER_SECTORS = [
+      { id: 1, label: "1", color: "#00f0ff", bgGrad: ["#00f0ff", "#0088cc"] },
+      { id: 2, label: "2", color: "#ff007f", bgGrad: ["#ff007f", "#b30059"] },
+      { id: 3, label: "3", color: "#9d00ff", bgGrad: ["#9d00ff", "#6600b3"] },
+      { id: 4, label: "4", color: "#ffb703", bgGrad: ["#ffb703", "#d48800"] }
+    ];
+
+    // Senarai sektor aktif yang dinamik (berkurang apabila soalan dijawab)
+    let activeSectors = JSON.parse(JSON.stringify(ALL_MASTER_SECTORS));
+
+    const remainingCountText = document.getElementById('remainingCountText');
+    const allDoneModalBackdrop = document.getElementById('allDoneModalBackdrop');
+    const btnResetAll = document.getElementById('btnResetAll');
+
+    function updateRemainingCountUI() {
+      if (remainingCountText) {
+        remainingCountText.textContent = `${activeSectors.length} / 4`;
+      }
+    }
+
+    function drawWheel() {
+      const w = wheelCanvas.width;
+      const h = wheelCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = cx - 18;
+      const count = activeSectors.length;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (count === 0) {
+        // Semua soalan telah habis
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#1b2559";
+        ctx.fill();
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = "#ffd200";
+        ctx.stroke();
+
+        ctx.font = '900 48px "Outfit", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("SELESAI! 🏆", cx, cy);
+        ctx.restore();
+        return;
+      }
+
+      const sectorAngle = (Math.PI * 2) / count;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(wheelState.angle);
+
+      for (let i = 0; i < count; i++) {
+        const startA = i * sectorAngle;
+        const endA = startA + sectorAngle;
+        const sec = activeSectors[i];
+
+        // Sektor Slice
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, startA, endA);
+        ctx.closePath();
+
+        // Gradient & Warna
+        const grad = ctx.createRadialGradient(0, 0, 40, 0, 0, radius);
+        grad.addColorStop(0, sec.bgGrad[0]);
+        grad.addColorStop(1, sec.bgGrad[1]);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Border Garisan Pemisah Sektor
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Teks Nombor Sektor Roblox 3D Style
+        ctx.save();
+        ctx.rotate(startA + sectorAngle / 2);
+        ctx.translate(radius * 0.62, 0);
+        ctx.rotate(Math.PI / 2); // Menghadap pembaca
+
+        ctx.font = count === 1 ? '900 80px "Outfit", sans-serif' : '900 68px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Efek bayang 3D
+        ctx.fillStyle = '#060a24';
+        ctx.fillText(sec.label, 3, 4);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(sec.label, 0, 0);
+
+        ctx.restore();
+      }
+
+      // Gegelang Luar Bercahaya
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    /* Gelung Animasi Roda */
+    function animateWheelLoop() {
+      if (wheelState.isSpinning) {
+        wheelState.angle += wheelState.angularSpeed;
+        if (wheelState.angle >= Math.PI * 2) {
+          wheelState.angle -= Math.PI * 2;
+        }
+      }
+      drawWheel();
+      requestAnimationFrame(animateWheelLoop);
+    }
+
+    /* Mulakan Putaran Roda (Cubit) */
+    function triggerStartSpin() {
+      if (wheelState.isLocked) return;
+      if (activeSectors.length === 0) return;
+      if (wheelState.isSpinning) return;
+
+      wheelState.isSpinning = true;
+      wheelState.angularSpeed = 0.22;
+      sound.startSpinSound();
+      updateWheelStatus("RODA SEDANG BERPUTAR...", "🌀");
+    }
+
+    /* Hentikan Putaran Roda Serta-Merta (Tapak Tangan Terbuka) */
+    function triggerStopSpin() {
+      if (wheelState.isLocked) return;
+      if (!wheelState.isSpinning) return;
+      if (activeSectors.length === 0) return;
+
+      wheelState.isSpinning = false;
+      wheelState.angularSpeed = 0;
+      sound.playBrakeStop();
+
+      // ==========================================================
+      // PENGIRAAN SEKTOR DI BAWAH PENUNJUK ATAS (12 O'CLOCK / 270°)
+      // Mengambil kira bilangan sektor aktif yang masih tinggal secara dinamik!
+      // ==========================================================
+      const pointerAngle = (3 * Math.PI) / 2; // 270 darjah
+      let normalizedAngle = (pointerAngle - (wheelState.angle % (Math.PI * 2))) % (Math.PI * 2);
+      if (normalizedAngle < 0) normalizedAngle += Math.PI * 2;
+
+      const count = activeSectors.length;
+      const sectorAngle = (Math.PI * 2) / count;
+      const sectorIndex = Math.floor(normalizedAngle / sectorAngle) % count;
+      const chosenSector = activeSectors[sectorIndex];
+
+      wheelState.selectedSector = chosenSector.id;
+      wheelState.isLocked = true; // Kunci putaran sehingga soalan dihuraikan dan butang NEXT ditekan
+
+      updateWheelStatus(`RODA BERHENTI DI SOALAN ${chosenSector.label}!`, "🎯");
+
+      // Buka Modal Soalan Selepas Henti
+      setTimeout(() => {
+        openQuestionModal(chosenSector.id);
+      }, 350);
+    }
+
+    /* ==========================================================================
+       4. PENGURUSAN STATUS & MODAL SOALAN (DENGAN AUTO-REMOVE)
+       ========================================================================== */
+    const wheelStatusBanner = document.getElementById('wheelStatusBanner');
+    const statusText = document.getElementById('statusText');
+    const statusEmoji = document.getElementById('statusEmoji');
+
+    const questionModalBackdrop = document.getElementById('questionModalBackdrop');
+    const modalSectorTitle = document.getElementById('modalSectorTitle');
+    const modalOpTag = document.getElementById('modalOpTag');
+    const modalQuestionText = document.getElementById('modalQuestionText');
+    const btnNextStudent = document.getElementById('btnNextStudent');
+
+    function updateWheelStatus(msg, emoji = "✨") {
+      statusText.textContent = msg;
+      statusEmoji.textContent = emoji;
+    }
+
+    function openQuestionModal(sectorId) {
+      sound.playSparkle();
+      const qData = REFLECTION_QUESTIONS[sectorId];
+
+      modalSectorTitle.textContent = `SOALAN REFLEKSI ${qData.number}`;
+      modalOpTag.textContent = qData.opLabel;
+      modalQuestionText.textContent = qData.question;
+
+      questionModalBackdrop.classList.add('show');
+    }
+
+    /* BUTANG NEXT — SOALAN SETERUSNYA (AUTO-REMOVE SOALAN SELESAI) */
+    btnNextStudent.addEventListener('click', () => {
+      sound.playClick();
+      questionModalBackdrop.classList.remove('show');
+
+      // AUTO REMOVE: Buang sektor yang baru dijawab daripada activeSectors
+      if (wheelState.selectedSector !== null) {
+        activeSectors = activeSectors.filter(s => s.id !== wheelState.selectedSector);
+        updateRemainingCountUI();
+      }
+
+      // Semak jika semua 4 soalan telah habis dijawab
+      if (activeSectors.length === 0) {
+        sound.playSparkle();
+        wheelState.isLocked = true;
+        wheelState.selectedSector = null;
+        updateWheelStatus("SEMUA SOALAN TELAH SELESAI!", "🏆");
+        setTimeout(() => {
+          allDoneModalBackdrop.classList.add('show');
+        }, 300);
+        return;
+      }
+
+      // Masih ada soalan: Tetapkan semula roda untuk murid seterusnya
+      wheelState.isLocked = false;
+      wheelState.selectedSector = null;
+      updateWheelStatus(`SOALAN SELESAI DIKELUARKAN! BAKI: ${activeSectors.length}. HALAKAN TANGAN KE ARAH KAMERA`, "✋");
+    });
+
+    /* Reset / Main Semula Semua Soalan */
+    btnResetAll.addEventListener('click', () => {
+      sound.playClick();
+      allDoneModalBackdrop.classList.remove('show');
+      activeSectors = JSON.parse(JSON.stringify(ALL_MASTER_SECTORS));
+      updateRemainingCountUI();
+      wheelState.isLocked = false;
+      wheelState.selectedSector = null;
+      wheelState.angle = 0;
+      updateWheelStatus("RODA DIRESET! HALAKAN TANGAN KE ARAH KAMERA", "✨");
+    });
+
+    /* ==========================================================================
+       5. LOGIK PENGESANAN GESTUR AR MEDIAPIPE (Pinch & Open Palm)
+       ========================================================================== */
+    const webcamVideo = document.getElementById('webcamVideo');
+    const outputCanvas = document.getElementById('outputCanvas');
+    const outCtx = outputCanvas.getContext('2d');
+    const camStatusPill = document.getElementById('camStatusPill');
+    const detectedGestureBadge = document.getElementById('detectedGestureBadge');
+
+    let handsModel = null;
+    let cameraInstance = null;
+
+    // Pengiraan Jarak Euclid Antara Dua Landmark
+    function calculateDistance(p1, p2) {
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
+      const dz = (p1.z || 0) - (p2.z || 0);
+      return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    // Klasifikasi Gestur Berdasarkan Landmark Tangan MediaPipe (21 Titik)
+    function detectHandGesture(landmarks) {
+      // Landmark Utama:
+      // 0: Wrist
+      // 4: Thumb Tip, 3: Thumb IP, 2: Thumb MCP
+      // 8: Index Tip, 6: Index PIP, 5: Index MCP
+      // 12: Middle Tip, 10: Middle PIP, 9: Middle MCP
+      // 16: Ring Tip, 14: Ring PIP, 13: Ring MCP
+      // 20: Pinky Tip, 18: Pinky PIP, 17: Pinky MCP
+
+      const wrist = landmarks[0];
+      const thumbTip = landmarks[4];
+      const indexTip = landmarks[8];
+      const middleTip = landmarks[12];
+      const ringTip = landmarks[16];
+      const pinkyTip = landmarks[20];
+
+      // Jarak Ibu Jari & Jari Telunjuk (Pinch Check)
+      const pinchDist = calculateDistance(thumbTip, indexTip);
+
+      // Jarak Hujung Jari ke Pergelangan Tangan (Open Finger Check)
+      const distIndex = calculateDistance(indexTip, wrist);
+      const distMiddle = calculateDistance(middleTip, wrist);
+      const distRing = calculateDistance(ringTip, wrist);
+      const distPinky = calculateDistance(pinkyTip, wrist);
+      const distThumb = calculateDistance(thumbTip, wrist);
+
+      // Base knuckles MCP ke wrist untuk perbandingan relatif
+      const baseIndex = calculateDistance(landmarks[5], wrist);
+      const baseMiddle = calculateDistance(landmarks[9], wrist);
+      const baseRing = calculateDistance(landmarks[13], wrist);
+      const basePinky = calculateDistance(landmarks[17], wrist);
+
+      // 1. SEMAKAN GESTUR CUBIT (PINCH)
+      // Jarak antara ibu jari dan jari telunjuk sangat rapat (< 0.08 Normalized)
+      if (pinchDist < 0.075) {
+        return "PINCH";
+      }
+
+      // 2. SEMAKAN GESTUR TAPAK TANGAN TERBUKA (OPEN PALM)
+      // Semua 4 jari (telunjuk, hantu, manis, kelengkeng) terlunjur jauh melepasi MCP & ibu jari terbuka
+      const isIndexOpen = distIndex > baseIndex * 1.35;
+      const isMiddleOpen = distMiddle > baseMiddle * 1.35;
+      const isRingOpen = distRing > baseRing * 1.35;
+      const isPinkyOpen = distPinky > basePinky * 1.35;
+      const isThumbOpen = pinchDist > 0.16;
+
+      if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen && isThumbOpen) {
+        return "OPEN_PALM";
+      }
+
+      return "UNKNOWN";
+    }
+
+    // Melukis Garisan & Titik Skeleton Tangan AR
+    function drawHandSkeleton(landmarks) {
+      outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+      outCtx.save();
+
+      // Sambungan Garisan Jari
+      const connections = [
+        [0,1],[1,2],[2,3],[3,4],       // Ibu Jari
+        [0,5],[5,6],[6,7],[7,8],       // Telunjuk
+        [5,9],[9,10],[10,11],[11,12],  // Hantu
+        [9,13],[13,14],[14,15],[15,16],// Manis
+        [13,17],[17,18],[18,19],[19,20],[0,17] // Kelengkeng & Telapak
+      ];
+
+      outCtx.lineWidth = 3;
+      outCtx.strokeStyle = '#00f0ff';
+      connections.forEach(([i, j]) => {
+        const p1 = landmarks[i];
+        const p2 = landmarks[j];
+        outCtx.beginPath();
+        outCtx.moveTo(p1.x * outputCanvas.width, p1.y * outputCanvas.height);
+        outCtx.lineTo(p2.x * outputCanvas.width, p2.y * outputCanvas.height);
+        outCtx.stroke();
+      });
+
+      // Titik Landmark Neon
+      landmarks.forEach((p, idx) => {
+        outCtx.beginPath();
+        outCtx.arc(p.x * outputCanvas.width, p.y * outputCanvas.height, 4, 0, 2 * Math.PI);
+        outCtx.fillStyle = (idx === 4 || idx === 8) ? '#ffe600' : '#ff007f';
+        outCtx.fill();
+        outCtx.lineWidth = 1;
+        outCtx.strokeStyle = '#ffffff';
+        outCtx.stroke();
+      });
+
+      outCtx.restore();
+    }
+
+    // Callback Hasil MediaPipe Hands Setiap Frame
+    function onHandsResults(results) {
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+        drawHandSkeleton(landmarks);
+
+        const gesture = detectHandGesture(landmarks);
+
+        if (gesture === "PINCH") {
+          detectedGestureBadge.textContent = "🤏 GESTUR: CUBIT (PUTAR)";
+          detectedGestureBadge.style.borderColor = "#00f0ff";
+          detectedGestureBadge.style.color = "#00f0ff";
+
+          // Mulakan putaran jika belum dan tiada cooldown
+          if (!wheelState.pinchCooldown && !wheelState.isSpinning && !wheelState.isLocked) {
+            triggerStartSpin();
+            wheelState.pinchCooldown = true;
+          }
+        } else if (gesture === "OPEN_PALM") {
+          detectedGestureBadge.textContent = "✋ GESTUR: TAPAK TANGAN (HENTI)";
+          detectedGestureBadge.style.borderColor = "#ffe600";
+          detectedGestureBadge.style.color = "#ffe600";
+
+          wheelState.pinchCooldown = false; // Reset cooldown apabila cubitan dilepaskan
+
+          // Hentikan serta merta jika sedang berputar
+          if (wheelState.isSpinning) {
+            triggerStopSpin();
+          }
+        } else {
+          detectedGestureBadge.textContent = "👋 TANGAN DIKESAN";
+          detectedGestureBadge.style.borderColor = "#00ff88";
+          detectedGestureBadge.style.color = "#ffffff";
+          wheelState.pinchCooldown = false;
+        }
+
+      } else {
+        outCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+        detectedGestureBadge.textContent = "HALAKAN TANGAN KE ARAH KAMERA";
+        detectedGestureBadge.style.borderColor = "#94a3b8";
+        detectedGestureBadge.style.color = "#94a3b8";
+        wheelState.pinchCooldown = false;
+      }
+    }
+
+    /* Inisialisasi MediaPipe Hands */
+    async function initMediaPipeCamera() {
+      camStatusPill.innerHTML = `<span class="pulsing-dot" style="background:#ffe600; width:7px; height:7px;"></span><span>MEMUATKAN AR...</span>`;
+
+      try {
+        handsModel = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        handsModel.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.65,
+          minTrackingConfidence: 0.65
+        });
+
+        handsModel.onResults(onHandsResults);
+
+        // Akses Kamera iPad / Komputer
+        cameraInstance = new Camera(webcamVideo, {
+          onFrame: async () => {
+            await handsModel.send({ image: webcamVideo });
+          },
+          width: 640,
+          height: 480
+        });
+
+        await cameraInstance.start();
+
+        camStatusPill.className = 'cam-status-pill';
+        camStatusPill.innerHTML = `<span class="pulsing-dot" style="background:#00ff88; width:7px; height:7px;"></span><span>KAMERA AKTIF</span>`;
+        updateWheelStatus("HALAKAN TANGAN KE ARAH KAMERA", "✋");
+
+      } catch (err) {
+        console.error("Ralat Akses MediaPipe / Kamera:", err);
+        camStatusPill.className = 'cam-status-pill error';
+        camStatusPill.innerHTML = `<span>⚠️ KAMERA TERHALANG</span>`;
+        updateWheelStatus("GUNAKAN BUTANG MANUAL DI BAWAH JIKA TIADA KAMERA", "💡");
+      }
+    }
+
+    /* ==========================================================================
+       6. BUTANG MANUAL & KAWALAN PAPARAN
+       ========================================================================== */
+    const permModalOverlay = document.getElementById('permModalOverlay');
+    const btnGrantCamera = document.getElementById('btnGrantCamera');
+    const btnManualSpin = document.getElementById('btnManualSpin');
+    const btnManualStop = document.getElementById('btnManualStop');
+
+    btnGrantCamera.addEventListener('click', async () => {
+      sound.init();
+      sound.playClick();
+      sound.startBGM();
+      permModalOverlay.style.display = 'none';
+      await initMediaPipeCamera();
+    });
+
+    btnManualSpin.addEventListener('click', () => {
+      sound.playClick();
+      triggerStartSpin();
+    });
+
+    btnManualStop.addEventListener('click', () => {
+      triggerStopSpin();
+    });
+
+    // Kawalan Audio Atas
+    const btnMusic = document.getElementById('btnMusic');
+    const musicIcon = document.getElementById('musicIcon');
+    const musicText = document.getElementById('musicText');
+
+    btnMusic.addEventListener('click', () => {
+      sound.init();
+      sound.musicEnabled = !sound.musicEnabled;
+      if (sound.musicEnabled) {
+        btnMusic.classList.remove('muted');
+        musicIcon.textContent = '🎵';
+        musicText.textContent = 'MUZIK: ON';
+        sound.startBGM();
+      } else {
+        btnMusic.classList.add('muted');
+        musicIcon.textContent = '🔇';
+        musicText.textContent = 'MUZIK: OFF';
+      }
+    });
+
+    const btnSfx = document.getElementById('btnSfx');
+    const sfxIcon = document.getElementById('sfxIcon');
+    const sfxText = document.getElementById('sfxText');
+
+    btnSfx.addEventListener('click', () => {
+      sound.init();
+      sound.sfxEnabled = !sound.sfxEnabled;
+      if (sound.sfxEnabled) {
+        btnSfx.classList.remove('muted');
+        sfxIcon.textContent = '🔊';
+        sfxText.textContent = 'BUNYI: ON';
+        sound.playClick();
+      } else {
+        btnSfx.classList.add('muted');
+        sfxIcon.textContent = '🔈';
+        sfxText.textContent = 'BUNYI: OFF';
+      }
+    });
+
+    // Mulakan animasi roda secara langsung
+    window.onload = () => {
+      drawWheel();
+      animateWheelLoop();
+    };
+  </script>
+</body>
+</html>
